@@ -666,6 +666,10 @@ void FloodAreas_r(node_t *node) {
         // this node is part of an area portal
         b = node->brushlist;
         e = &entities[b->original->entitynum];
+        if (!strlen(ValueForKey(e, "targetname"))) {
+            printf("WARNING: entity %i has CONTENTS_AREAPORTAL but no targetname\n", b->original->entitynum);
+            return;
+        }
 
         // if the current area has allready touched this
         // portal, we are done
@@ -674,15 +678,17 @@ void FloodAreas_r(node_t *node) {
 
         // note the current area as bounding the portal
         if (e->portalareas[1]) {
-            printf("WARNING: areaportal entity %i touches > 2 areas\n  Node Bounds: %g %g %g -> %g %g %g\n", b->original->entitynum,
-                   node->mins[0], node->mins[1], node->mins[2], node->maxs[0], node->maxs[1], node->maxs[2]);
+            printf("WARNING: areaportal entity %i (%s) touches > 2 areas\n  Node Bounds: %g %g %g -> %g %g %g\n", b->original->entitynum,
+                   ValueForKey(e, "targetname"), node->mins[0], node->mins[1], node->mins[2], node->maxs[0], node->maxs[1], node->maxs[2]);
             return;
         }
-        if (e->portalareas[0])
+        if (e->portalareas[0]) {
             e->portalareas[1] = c_areas;
-        else
+            printf("*** areaportal entity %i (%s) second area is %i\n", b->original->entitynum, ValueForKey(e, "targetname"), c_areas);
+        } else {
             e->portalareas[0] = c_areas;
-
+            printf("*** areaportal entity %i (%s) first area is %i\n", b->original->entitynum, ValueForKey(e, "targetname"), c_areas);
+        }
         return;
     }
 
@@ -785,6 +791,16 @@ void EmitAreaPortals(node_t *headnode) {
     numareas       = c_areas + 1;
     numareaportals = 1; // leave 0 as an error
 
+    // check func_areaportal entities if they're valid
+    for (j = 0; j < num_entities; j++) {
+        e = &entities[j];
+        if (!e->areaportalnum)
+            continue;
+        if (!e->portalareas[0] || !e->portalareas[1]) {
+            printf("WARNING: Area portal entity %i (%s) is not attached to any areas\n", j, ValueForKey(e, "targetname"));
+        }
+    }
+
     for (i = 1; i <= c_areas; i++) {
         dareas[i].firstareaportal = numareaportals;
         for (j = 0; j < num_entities; j++) {
@@ -817,10 +833,10 @@ Mark each leaf with an area, bounded by CONTENTS_AREAPORTAL
 =============
 */
 void FloodAreas(tree_t *tree) {
-    qprintf("--- FloodAreas ---\n");
+    printf("--- FloodAreas ---\n");
     FindAreas_r(tree->headnode);
     SetAreaPortalAreas_r(tree->headnode);
-    qprintf("%5i areas\n", c_areas);
+    printf("%5i areas\n", c_areas);
 }
 
 //======================================================

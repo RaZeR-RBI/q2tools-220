@@ -793,23 +793,29 @@ void RadWorld(void) {
 
     BuildFaceExtents(); // qb: from quetoo
     // create directlights out of patches and lights
+    printf("Creating direct lights...\n");
     CreateDirectLights();
+    printf("Pairing edges...\n");
     PairEdges(); // qb: moved here for phong
 
     // build initial facelights
+    printf("Building facelights... (numthreads = %i)\n", numthreads);
     RunThreadsOnIndividual(numfaces, true, BuildFacelights);
 
     if (numbounce > 0) {
         // build transfer lists
         if (!memory) {
+            printf("Making transfers...\n");
             RunThreadsOnIndividual(num_patches, true, MakeTransfers);
-            qprintf("transfer lists: %5.1f megs\n", (float)total_transfer * sizeof(transfer_t) / (1024 * 1024));
+            printf("transfer lists: %5.1f megs\n", (float)total_transfer * sizeof(transfer_t) / (1024 * 1024));
         }
         numthreads = 1;
 
         // spread light around
+        printf("Bouncing light...\n");
         BounceLight();
 
+        printf("Freeing and checking...\n");
         FreeTransfers();
 
         CheckPatches();
@@ -823,9 +829,11 @@ void RadWorld(void) {
     }
 
     // blend bounced light into direct light and save
+    printf("Linking faces...\n");
     LinkPlaneFaces();
 
     lightdatasize = 0;
+    printf("Finishing lighting...\n");
     RunThreadsOnIndividual(numfaces, true, FinalLightFace);
 }
 

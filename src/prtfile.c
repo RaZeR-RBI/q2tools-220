@@ -263,8 +263,8 @@ void WritePortalFile(tree_t *tree) {
     fprintf(pf, "%i\n", num_visclusters);
     fprintf(pf, "%i\n", num_visportals);
 
-    qprintf("%5i visclusters\n", num_visclusters);
-    qprintf("%5i visportals\n", num_visportals);
+    printf("%5i visclusters\n", num_visclusters);
+    printf("%5i visportals\n", num_visportals);
 
     WritePortalFile_r(headnode);
 
