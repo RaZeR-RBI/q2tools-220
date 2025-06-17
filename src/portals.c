@@ -792,14 +792,19 @@ void EmitAreaPortals(node_t *headnode) {
     numareaportals = 1; // leave 0 as an error
 
     // check func_areaportal entities if they're valid
+    int errors = 0;
     for (j = 0; j < num_entities; j++) {
         e = &entities[j];
         if (!e->areaportalnum)
             continue;
         if (!e->portalareas[0] || !e->portalareas[1]) {
             printf("WARNING: Area portal entity %i (%s) is not attached to any areas\n", j, ValueForKey(e, "targetname"));
+            errors++;
         }
     }
+
+    if (errors > 0)
+        Error("Invalid area portal configuration; aborting");
 
     for (i = 1; i <= c_areas; i++) {
         dareas[i].firstareaportal = numareaportals;
